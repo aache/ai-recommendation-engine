@@ -4,7 +4,7 @@ Description: Simplified AI Recommendation Engine
 
 Globals:
   Function:
-    Runtime: nodejs18.x
+    Runtime: nodejs20.x
     Timeout: 10
     MemorySize: 512
 
@@ -82,6 +82,12 @@ Resources:
             TableName: UserSearchHistory
         - DynamoDBReadPolicy:
             TableName: ProductCatalog
+        - Statement:
+            Effect: Allow
+            Action:
+              - bedrock:InvokeModel
+            Resource:
+              - arn:aws:bedrock:ap-south-1::foundation-model/amazon.titan-text-express-v1
       Events:
         Api:
           Type: HttpApi

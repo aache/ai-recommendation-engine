@@ -1,2 +1,3 @@
 .aws-sam/
 .aws-cdk/
+src/recommendation/node_modules

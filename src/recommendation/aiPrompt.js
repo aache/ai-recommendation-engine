@@ -1,47 +1,28 @@
 // src/recommendation/aiPrompt.js
 
-import { LIMITS } from "../../shared/constants.js";
-
 export function buildRecommendationPrompt({
   recentSearches,
   dominantTags,
   candidateProducts
 }) {
   return `
-You are an AI recommendation engine.
+User recent searches:
+${recentSearches.join(", ")}
 
-User intent is inferred from recent searches and dominant keywords.
-
-Recent Searches:
-${recentSearches.map((s, i) => `${i + 1}. ${s}`).join("\n")}
-
-Dominant Intent Tags:
+User intent keywords:
 ${dominantTags.join(", ")}
 
-Candidate Products (max ${LIMITS.MAX_AI_PRODUCTS}):
+Available products:
 ${candidateProducts
-  .map(
-    (p, i) =>
-      `${i + 1}. ${p.productName}
-   Tags: ${p.tags.join(", ")}
-   Price: ${p.priceRange}
-   Rating: ${p.rating}`
-  )
-  .join("\n\n")}
+  .map((p, i) => `${i + 1}. ${p.productName}`)
+  .join("\n")}
 
 Task:
-- Rank the top ${LIMITS.MAX_RECOMMENDATIONS} products
-- Consider relevance to user intent first
-- Prefer higher ratings when relevance is equal
-- Return output strictly as JSON in the format below
+From the list above, choose the TOP 3 products most relevant to the user's intent.
 
-Output format:
-[
-  {
-    "productId": "string",
-    "score": number,
-    "reason": "short explanation"
-  }
-]
+Respond ONLY with a numbered list in this exact format:
+1. Product name
+2. Product name
+3. Product name
 `;
 }
