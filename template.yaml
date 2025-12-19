@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Simplified AI Recommendation Engine
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 10
+    MemorySize: 512
+
+Resources:
+
+  UserSearchHistoryTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: UserSearchHistory
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+
+  ProductCatalogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ProductCatalog
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: category
+          AttributeType: S
+        - AttributeName: productId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: category
+          KeyType: HASH
+        - AttributeName: productId
+          KeyType: RANGE
+
+  SaveSearchHistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/search-history/handler.handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: UserSearchHistory
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /search-history
+            Method: POST
+
+  SaveProductFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/product-ingest/handler.handler
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: ProductCatalog
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /products
+            Method: POST
+
+  RecommendationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/recommendation/handler.handler
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: UserSearchHistory
+        - DynamoDBReadPolicy:
+            TableName: ProductCatalog
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            Path: /recommendations/{userId}
+            Method: GET
